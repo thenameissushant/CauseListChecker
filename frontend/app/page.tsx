@@ -22,35 +22,41 @@ export default function Home() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
 
-  const handleSearch = async (keywords: string[], uploadType: "upload" | "link", file?: File, url?: string) => {
-    setIsSearching(true)
+  const handleSearch = async (
+    keywords: string[],
+    uploadType: "upload" | "link",
+    file?: File,
+    url?: string
+  ) => {
+    try {
+      setIsSearching(true)
 
-    // Simulate API call with mock data
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+      const formData = new FormData()
+      formData.append("keywords", JSON.stringify(keywords))
 
-    const mockResults: SearchResult[] = [
-      {
-        id: "1",
-        judgeName: "Hon'ble Justice Rajesh Kumar",
-        vcLink: "https://example.com/vc/court1",
-        caseDetail: "Religare Finvest Limited vs. ABC Corporation & Others",
-        itemNumber: "15",
-        courtNumber: "Court No. 3",
-        matchedLine: `Found keyword "${keywords[0]}" in: The petitioner Religare Finvest Limited has filed this application...`,
-      },
-      {
-        id: "2",
-        judgeName: "Hon'ble Justice Priya Sharma",
-        vcLink: "https://example.com/vc/court2",
-        caseDetail: "State Bank of India vs. XYZ Enterprises",
-        itemNumber: "23",
-        courtNumber: "Court No. 7",
-        matchedLine: `Found keyword "${keywords[0]}" in: The respondent bank has submitted that the loan amount...`,
-      },
-    ]
+      if (uploadType === "upload" && file) {
+        formData.append("file", file)
+      } else if (uploadType === "link" && url) {
+        formData.append("url", url)
+      }
 
-    setResults(mockResults)
-    setIsSearching(false)
+      const response = await fetch("/api/search", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch results from the backend")
+      }
+
+      const data = await response.json()
+      setResults(data.results || [])
+    } catch (error) {
+      console.error("Error during search:", error)
+      alert("Something went wrong while searching. Please try again.")
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const clearResults = () => {
