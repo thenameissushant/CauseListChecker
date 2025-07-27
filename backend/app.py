@@ -17,7 +17,6 @@ def search_keywords():
     keywords = [k.strip().lower() for k in keywords.split(',')]
     text_by_page = {}
 
-    # Read PDF content
     with fitz.open(stream=file.read(), filetype="pdf") as doc:
         for page_num, page in enumerate(doc, start=1):
             text = page.get_text()
@@ -32,7 +31,6 @@ def search_keywords():
         text = data["text"]
         matches = data["matches"]
 
-        # Extract details
         judge_name = re.findall(r"Before\s+Hon'?ble\s+(.+?)(?:,|\n)", text, re.IGNORECASE)
         vc_link = re.findall(r"https?://[^\s]+", text)
         court_number = re.findall(r"Court\s+No\.\s*:?(\d+)", text, re.IGNORECASE)
@@ -52,4 +50,6 @@ def search_keywords():
     return jsonify({"results": results})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
